@@ -10,13 +10,13 @@ const config = {
 
 const db = connect(config);
 
-const result = await db.execute("SELECT * FROM messages");
-console.log(result);
-
 // server.ts
 const port = 8080;
 const conn = Deno.listen({ port });
 console.log(`WebSocket server is running on ws://localhost:${port}`);
+
+// Keep track of all connected sockets
+let sockets: WebSocket[] = [];
 
 for await (const httpConn of conn) {
   (async () => {
@@ -24,18 +24,26 @@ for await (const httpConn of conn) {
     for await (const e of httpRequests) {
       if (e) {
         const { socket, response } = Deno.upgradeWebSocket(e.request);
-        socket.onopen = () => {
+        sockets.push(socket);
+
+        socket.onopen = async () => {
           console.log("A WebSocket connection has been opened.");
         };
 
         socket.onmessage = (e) => {
           console.log("Received message:", e.data);
-          // Echo the message back to the client
-          socket.send(e.data);
+
+          // Send the message to all connected clients
+          sockets.forEach((socket: WebSocket) => {
+            socket.send(e.data);
+          });
         };
 
         socket.onclose = () => {
           console.log("WebSocket has been closed.");
+
+          // Remove the socket from the array
+          sockets = sockets.filter((s) => s !== socket);
         };
 
         socket.onerror = (e) => {
