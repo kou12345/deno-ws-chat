@@ -8,6 +8,6 @@ const config = {
   password: Deno.env.get("DATABASE_PASSWORD"),
 };
 
-const db = connect(config);
+export const db = connect(config);
 
 console.log(db);
