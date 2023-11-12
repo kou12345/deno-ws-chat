@@ -1,4 +1,5 @@
-// server.ts
+import { db } from "./db/db.ts";
+
 const port = 8080;
 const conn = Deno.listen({ port });
 console.log(`WebSocket server is running on ws://localhost:${port}`);
@@ -18,8 +19,25 @@ for await (const httpConn of conn) {
           console.log("A WebSocket connection has been opened.");
         };
 
-        socket.onmessage = (e) => {
+        socket.onmessage = async (e) => {
           console.log("Received message:", e.data);
+
+          // DBに保存
+          try {
+            const messageData = JSON.parse(e.data);
+            console.log(messageData);
+            const roomId = messageData.roomId as string;
+            const userId = messageData.userId as string;
+            const userName = messageData.userName as string;
+            const message = messageData.message as string;
+
+            await db.execute(
+              "INSERT INTO messages (room_id, user_id, message_text) VALUES (?, ?, ?)",
+              [roomId, userId, message]
+            );
+          } catch (e) {
+            console.error("Database error: ", e);
+          }
 
           // Send the message to all connected clients
           sockets.forEach((socket: WebSocket) => {
