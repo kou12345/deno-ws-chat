@@ -27,6 +27,7 @@ for await (const httpConn of conn) {
             console.log("messageType: ", messageType);
             const roomId = messageData.roomId as string;
             const userId = messageData.userId as string;
+            const userName = messageData.userName as string;
             const message = messageData.message as string;
 
             if (messageType === "joinRoom") {
@@ -39,8 +40,8 @@ for await (const httpConn of conn) {
             } else if (messageType === "message") {
               // メッセージ送信処理
               await db.execute(
-                "INSERT INTO messages (room_id, user_id, message_text) VALUES (?, ?, ?)",
-                [roomId, userId, message]
+                "INSERT INTO messages (room_id, user_id, user_name, message_text) VALUES (?, ?, ?, ?)",
+                [roomId, userId, userName, message]
               );
 
               // 特定のルームにのみメッセージを送信
@@ -48,6 +49,7 @@ for await (const httpConn of conn) {
               roomClients.get(roomId)?.forEach((client) => {
                 console.log(client);
                 console.log("send");
+                console.log(e.data);
                 client.send(e.data);
               });
             }
