@@ -29,6 +29,7 @@ await createTable(
     id INT AUTO_INCREMENT PRIMARY KEY,
     room_id INT NOT NULL,
     user_id TEXT NOT NULL,
+    user_name TEXT NOT NULL,
     message_text TEXT NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   )
